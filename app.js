@@ -2,6 +2,10 @@ var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
+const bodyParser = require("body-parser");
+
+
+
 var morgan = require('morgan');
 const logger = require('./logger')
 
@@ -20,13 +24,29 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+
+//匹配路由之前的操作
+app.use(function (req, res, next) {
+  console.log("访问之前");
+  next();
+});
+
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
-// catch 404 and forward to error handler
-app.use(function (req, res, next) {
-  next(createError(404));
-});
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }))
+// parse application/json
+app.use(bodyParser.json())
+// 全局 中间件  解决所有路由的 跨域问题
+app.all('*', function (req, res, next) {
+  res.header('Access-Control-Allow-Origin', '*')
+  res.header('Access-Control-Allow-Headers', 'X-Requested-With,Content-Type')
+  res.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+  next()
+})
+
+
 
 // error handler
 app.use(function (err, req, res, next) {
